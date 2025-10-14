@@ -1,0 +1,6 @@
+@ArthaShikshaAPI_HostAddress = http://localhost:5005
+
+GET {{ArthaShikshaAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
