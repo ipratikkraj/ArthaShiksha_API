@@ -25,36 +25,30 @@ namespace ArthaShikshaAPI.Controllers
         /// Authenticates a user for portal access
         /// </summary>
         [HttpPost("PortalLogin")]
-        [ProducesResponseType(typeof(APIMessage), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(APIMessage), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(APIMessage), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> PortalLogin([FromBody] PortalLoginModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new APIMessage 
-                { 
-                    StatusCode = (int)HttpStatusCode.BadRequest,
-                    StatusMessage = "Invalid input",
-                    Data = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                });
-            }
-
             try
             {
                 var result = await _accountService.PortalLogin(model);
-                return StatusCode(result.StatusCode, result);
+                return result != null 
+                    ? Ok(new APIMessage { 
+                        StatusCode = (int)HttpStatusCode.OK, 
+                        StatusMessage = Constants.SUCCESSMSG, 
+                        Data = result 
+                    })
+                    : Ok(new APIMessage { 
+                        StatusCode = Constants.FAILED_OPERATION, 
+                        StatusMessage = Constants.FAILUREMSG, 
+                        Data = false 
+                    });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during login attempt for {EmailId}", model.EmailId);
-                return StatusCode((int)HttpStatusCode.InternalServerError, new APIMessage
-                {
-                    StatusCode = (int)HttpStatusCode.InternalServerError,
-                    StatusMessage = "An unexpected error occurred",
-                    Data = null
+                _logger.LogError(ex, "Error in PortalLogin for user {EmailId}", model.EmailId);
+                return Ok(new APIMessage { 
+                    StatusCode = Constants.FAILED_OPERATION, 
+                    StatusMessage = Constants.FAILUREMSG, 
+                    Data = false 
                 });
             }
         }

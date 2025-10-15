@@ -38,20 +38,20 @@ builder.Services.AddDbContext<ASDBContext>(options =>
     );
 });
 
-// CORS Configuration
+// Updated CORS Configuration to allow all origins
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevelopmentPolicy", policy =>
-    {
-        policy.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+    options.AddDefaultPolicy(builder =>
+        builder.SetIsOriginAllowed(_ => true) // Allow any origin
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials());
 });
 
-// Register Services - Final version after renaming
+// Register Services
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserManagementSevice, UserManagementService>();
+
 // Add Logging
 builder.Services.AddLogging(logging =>
 {
@@ -70,7 +70,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRateLimiter();
-app.UseCors("DevelopmentPolicy");
+
+
+// Updated CORS middleware to use default policy
+app.UseCors(); // This will use the default policy we configured above
+
 app.UseAuthorization();
 app.MapControllers();
 
